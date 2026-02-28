@@ -352,12 +352,12 @@ select {
 .toastui-editor-toolbar-icons {
   color: var(--text-secondary) !important;
   border-color: transparent !important;
-  background: transparent !important;
+  background-color: transparent !important;
 }
 
 .toastui-editor-toolbar-icons:hover {
   color: var(--text) !important;
-  background: var(--bg-hover) !important;
+  background-color: var(--bg-hover) !important;
 }
 
 .toastui-editor-toolbar-icons:focus-visible {
