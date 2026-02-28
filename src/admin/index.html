@@ -61,6 +61,7 @@
         <div class="topbar-actions">
           <span id="save-status" class="save-status" role="status" aria-live="polite"></span>
           <button id="delete-btn" class="btn btn-danger btn-sm" hidden>Löschen</button>
+          <button id="publish-btn" class="btn btn-success" hidden>Veröffentlichen</button>
           <button id="save-btn" class="btn btn-primary">Speichern</button>
         </div>
       </header>
@@ -98,6 +99,10 @@
             </div>
           </div>
         </div>
+        <label class="field-toggle">
+          <input type="checkbox" id="f-draft">
+          <span>Entwurf — nicht veröffentlicht</span>
+        </label>
       </div>
 
       <!-- Frontmatter-Felder (Seiten) -->

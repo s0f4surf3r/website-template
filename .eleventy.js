@@ -5,7 +5,9 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.setLibrary("md", md);
 
   eleventyConfig.addCollection("sortedTexte", function (collectionApi) {
-    return collectionApi.getFilteredByTag("text").sort((a, b) => b.date - a.date);
+    return collectionApi.getFilteredByTag("text")
+      .filter(item => item.data.draft !== true)
+      .sort((a, b) => b.date - a.date);
   });
 
   eleventyConfig.addFilter("readableDate", (dateObj) => {

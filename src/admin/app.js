@@ -199,6 +199,29 @@
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openItem(); }
       });
     });
+
+    // Draft-Badges laden
+    loadDraftBadges(res.data.texte);
+  }
+
+  async function loadDraftBadges(texte) {
+    const results = await Promise.all(
+      texte.map(async (file) => {
+        const res = await api('GET', `/api/content/${encodeURIComponent(file.path)}`);
+        if (!res || res.status !== 200) return null;
+        const { frontmatter } = parseFrontmatter(res.data.content);
+        return { path: file.path, draft: frontmatter.draft === 'true' || frontmatter.draft === true };
+      })
+    );
+    for (const result of results) {
+      if (!result || !result.draft) continue;
+      const item = document.querySelector(`.content-item[data-path="${result.path}"]`);
+      if (!item) continue;
+      const meta = item.querySelector('.content-item-meta');
+      if (meta && !meta.querySelector('.draft-badge')) {
+        meta.insertAdjacentHTML('beforeend', ' <span class="draft-badge">Entwurf</span>');
+      }
+    }
   }
 
   // --- Neuer Text ---
@@ -219,10 +242,12 @@
     $('#f-date').value = today;
     $('#f-excerpt').value = '';
     $('#f-heroimage').value = '';
+    $('#f-draft').checked = true;
     initEditor('');
     lastSavedContent = '';
     hasUnsavedChanges = false;
     $('#save-status').textContent = '';
+    updatePublishButton();
   }
 
   // --- Editor laden ---
@@ -254,6 +279,7 @@
       $('#f-date').value = frontmatter.date ? frontmatter.date.slice(0, 10) : '';
       $('#f-excerpt').value = frontmatter.excerpt || '';
       $('#f-heroimage').value = frontmatter.heroImage || '';
+      $('#f-draft').checked = frontmatter.draft === 'true' || frontmatter.draft === true;
     } else {
       $('#fp-title').value = frontmatter.title || '';
       $('#fp-subtitle').value = frontmatter.subtitle || '';
@@ -264,6 +290,7 @@
     lastSavedContent = getFullContent();
     hasUnsavedChanges = false;
     $('#save-status').textContent = '';
+    updatePublishButton();
   }
 
   // --- Toast UI Editor ---
@@ -317,7 +344,7 @@
   }
 
   // Frontmatter-Felder Change-Listener
-  ['#f-title', '#f-type', '#f-date', '#f-excerpt', '#f-heroimage', '#fp-title', '#fp-subtitle', '#fp-description'].forEach((sel) => {
+  ['#f-title', '#f-type', '#f-date', '#f-excerpt', '#f-heroimage', '#f-draft', '#fp-title', '#fp-subtitle', '#fp-description'].forEach((sel) => {
     const el = $(sel);
     if (el) {
       el.addEventListener('input', onContentChange);
@@ -364,6 +391,7 @@
         date: `${$('#f-date').value}T00:00:00.000+01:00`,
         type: $('#f-type').value,
       };
+      if ($('#f-draft').checked) frontmatter.draft = true;
       const heroImage = $('#f-heroimage').value.trim();
       const excerpt = $('#f-excerpt').value.trim();
       if (heroImage) frontmatter.heroImage = heroImage;
@@ -436,6 +464,7 @@
           date: `${date}T00:00:00.000+01:00`,
           type,
         };
+        if ($('#f-draft').checked) frontmatter.draft = true;
         if (heroImage) frontmatter.heroImage = heroImage;
         if (excerpt) frontmatter.excerpt = excerpt;
 
@@ -468,8 +497,13 @@
         currentFile.isNew = false;
         lastSavedContent = content;
         hasUnsavedChanges = false;
-        status.textContent = isAuto ? 'Auto-gespeichert' : 'Gespeichert';
+        let statusText = isAuto ? 'Auto-gespeichert' : 'Gespeichert';
+        if (!isAuto && currentFile.type === 'text' && !$('#f-draft').checked) {
+          statusText = 'Veröffentlicht';
+        }
+        status.textContent = statusText;
         status.style.color = 'var(--success)';
+        updatePublishButton();
       } else {
         status.textContent = 'Fehler beim Speichern';
         status.style.color = 'var(--danger)';
@@ -479,6 +513,20 @@
       saveBtn.disabled = false;
     }
   }
+
+  // --- Veröffentlichen ---
+  function updatePublishButton() {
+    const btn = $('#publish-btn');
+    btn.hidden = !(currentFile && currentFile.type === 'text' && $('#f-draft').checked);
+  }
+
+  $('#publish-btn').addEventListener('click', () => {
+    $('#f-draft').checked = false;
+    saveContent(false);
+  });
+
+  // Draft-Checkbox ändert Publish-Button Sichtbarkeit
+  $('#f-draft').addEventListener('change', updatePublishButton);
 
   // --- Löschen ---
   $('#delete-btn').addEventListener('click', async () => {
