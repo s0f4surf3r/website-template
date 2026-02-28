@@ -11,17 +11,17 @@
   <div id="app">
 
     <!-- Login -->
-    <div id="view-login" class="view">
+    <div id="view-login" class="view" role="main">
       <div class="login-box">
         <h1 class="logo">perfectCMS</h1>
         <p class="login-sub">Inhalte bearbeiten</p>
-        <form id="login-form">
+        <form id="login-form" novalidate>
           <label for="login-email">E-Mail</label>
-          <input type="email" id="login-email" required autocomplete="email">
+          <input type="email" id="login-email" required autocomplete="email" aria-required="true">
           <label for="login-password">Passwort</label>
-          <input type="password" id="login-password" required autocomplete="current-password">
+          <input type="password" id="login-password" required autocomplete="current-password" aria-required="true">
           <button type="submit" class="btn btn-primary">Anmelden</button>
-          <p id="login-error" class="error" hidden></p>
+          <p id="login-error" class="error" role="alert" hidden></p>
         </form>
       </div>
     </div>
@@ -32,33 +32,33 @@
         <h1 class="topbar-title">perfectCMS</h1>
         <button id="logout-btn" class="btn btn-ghost">Abmelden</button>
       </header>
-      <div class="list-container">
-        <div class="tabs">
-          <button class="tab active" data-tab="texte">Texte</button>
-          <button class="tab" data-tab="seiten">Seiten</button>
+      <main class="list-container">
+        <div class="tabs" role="tablist" aria-label="Inhaltstypen">
+          <button class="tab active" data-tab="texte" role="tab" aria-selected="true" aria-controls="tab-texte" id="tab-btn-texte">Texte</button>
+          <button class="tab" data-tab="seiten" role="tab" aria-selected="false" aria-controls="tab-seiten" id="tab-btn-seiten">Seiten</button>
         </div>
-        <div id="tab-texte" class="tab-panel">
+        <div id="tab-texte" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-texte">
           <div class="list-header">
             <h2>Texte</h2>
             <button id="new-text-btn" class="btn btn-primary btn-sm">+ Neuer Text</button>
           </div>
-          <ul id="texte-list" class="content-list"></ul>
+          <ul id="texte-list" class="content-list" aria-label="Texte"></ul>
         </div>
-        <div id="tab-seiten" class="tab-panel" hidden>
+        <div id="tab-seiten" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-seiten" hidden>
           <div class="list-header">
             <h2>Seiten</h2>
           </div>
-          <ul id="seiten-list" class="content-list"></ul>
+          <ul id="seiten-list" class="content-list" aria-label="Seiten"></ul>
         </div>
-      </div>
+      </main>
     </div>
 
     <!-- Editor -->
     <div id="view-editor" class="view" hidden>
       <header class="topbar">
-        <button id="back-btn" class="btn btn-ghost">&larr; Zurück</button>
+        <button id="back-btn" class="btn btn-ghost" aria-label="Zurück zur Liste">&larr; Zurück</button>
         <div class="topbar-actions">
-          <span id="save-status" class="save-status"></span>
+          <span id="save-status" class="save-status" role="status" aria-live="polite"></span>
           <button id="delete-btn" class="btn btn-danger btn-sm" hidden>Löschen</button>
           <button id="save-btn" class="btn btn-primary">Speichern</button>
         </div>
@@ -69,7 +69,7 @@
         <div class="field-row">
           <div class="field">
             <label for="f-title">Titel</label>
-            <input type="text" id="f-title" required>
+            <input type="text" id="f-title" required aria-required="true">
           </div>
           <div class="field field-sm">
             <label for="f-type">Typ</label>
@@ -81,7 +81,7 @@
           </div>
           <div class="field field-sm">
             <label for="f-date">Datum</label>
-            <input type="date" id="f-date" required>
+            <input type="date" id="f-date" required aria-required="true">
           </div>
         </div>
         <div class="field-row">
@@ -93,7 +93,7 @@
             <label for="f-heroimage">Bild</label>
             <div class="image-field">
               <input type="text" id="f-heroimage" placeholder="/images/...">
-              <button type="button" id="upload-hero-btn" class="btn btn-ghost btn-sm">Upload</button>
+              <button type="button" id="upload-hero-btn" class="btn btn-ghost btn-sm" aria-label="Hero-Bild hochladen">Upload</button>
             </div>
           </div>
         </div>
@@ -104,7 +104,7 @@
         <div class="field-row">
           <div class="field">
             <label for="fp-title">Titel</label>
-            <input type="text" id="fp-title" required>
+            <input type="text" id="fp-title" required aria-required="true">
           </div>
           <div class="field">
             <label for="fp-subtitle">Untertitel</label>
@@ -122,20 +122,20 @@
       <!-- Split-Screen Editor -->
       <div class="editor-split">
         <div class="editor-pane">
-          <div class="pane-label">Editor</div>
-          <textarea id="editor" spellcheck="true"></textarea>
+          <div class="pane-label" id="editor-label">Editor</div>
+          <textarea id="editor" spellcheck="true" aria-labelledby="editor-label"></textarea>
         </div>
         <div class="preview-pane">
-          <div class="pane-label">Vorschau</div>
-          <div id="preview" class="preview-content"></div>
+          <div class="pane-label" id="preview-label">Vorschau</div>
+          <div id="preview" class="preview-content" role="region" aria-labelledby="preview-label" aria-live="polite"></div>
         </div>
       </div>
 
       <!-- Bild-Upload -->
       <div class="upload-bar">
-        <input type="file" id="upload-input" accept="image/*" hidden>
-        <button id="upload-btn" class="btn btn-ghost btn-sm">Bild hochladen</button>
-        <span id="upload-status"></span>
+        <input type="file" id="upload-input" accept="image/*" hidden aria-hidden="true">
+        <button id="upload-btn" class="btn btn-ghost btn-sm" aria-label="Bild in Editor einfügen">Bild hochladen</button>
+        <span id="upload-status" role="status" aria-live="polite"></span>
       </div>
     </div>
 

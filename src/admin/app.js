@@ -118,11 +118,15 @@
 
   $('#logout-btn').addEventListener('click', logout);
 
-  // --- Tabs ---
+  // --- Tabs (ARIA compliant) ---
   document.querySelectorAll('.tab').forEach((tab) => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach((t) => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
       tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
       const name = tab.dataset.tab;
       $('#tab-texte').hidden = name !== 'texte';
       $('#tab-seiten').hidden = name !== 'seiten';
@@ -155,7 +159,7 @@
           .replace(/^\d{4}-\d{2}-\d{2}-/, '')
           .replace(/\.md$/, '')
           .replace(/-/g, ' ');
-        return `<li class="content-item" data-path="${file.path}">
+        return `<li class="content-item" tabindex="0" role="button" data-path="${file.path}" aria-label="${capitalize(title)}, ${date}">
           <div class="content-item-title">${capitalize(title)}</div>
           <div class="content-item-meta">${date}</div>
         </li>`;
@@ -166,17 +170,19 @@
     seitenList.innerHTML = res.data.seiten
       .map((file) => {
         const title = file.name.replace(/\.md$/, '');
-        return `<li class="content-item" data-path="${file.path}">
+        return `<li class="content-item" tabindex="0" role="button" data-path="${file.path}" aria-label="${capitalize(title)}, Seite">
           <div class="content-item-title">${capitalize(title)}</div>
           <div class="content-item-meta">Seite</div>
         </li>`;
       })
       .join('');
 
-    // Click-Handler
+    // Click + Keyboard Handler
     document.querySelectorAll('.content-item').forEach((item) => {
-      item.addEventListener('click', () => {
-        navigate(`#edit/${encodeURIComponent(item.dataset.path)}`);
+      const openItem = () => navigate(`#edit/${encodeURIComponent(item.dataset.path)}`);
+      item.addEventListener('click', openItem);
+      item.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openItem(); }
       });
     });
   }
