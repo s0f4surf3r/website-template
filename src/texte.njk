@@ -1,0 +1,40 @@
+---
+layout: base.njk
+title: Texte
+description: Gedichte, Essays und das, was raus muss.
+---
+<article class="page-content">
+  <a href="/" class="back-link">&larr; Zurück</a>
+  <p class="page-subtitle">Gedichte &amp; Essays</p>
+  <h1 class="page-title">Texte</h1>
+
+  <div class="text-tabs">
+    <button class="text-tab active" onclick="showCat('gedicht', this)">Gedichte</button>
+    <button class="text-tab" onclick="showCat('essay', this)">Essays</button>
+  </div>
+
+  <ul class="text-list" id="text-list">
+    {% for item in collections.sortedTexte %}
+    <li class="text-item" data-type="{{ item.data.type | lower }}">
+      <a href="{{ item.url }}">
+        <p class="text-item-title">{{ item.data.title }}</p>
+        <p class="text-item-meta">{{ item.date | readableDate }}</p>
+        {% if item.data.excerpt %}
+        <p class="text-item-excerpt">{{ item.data.excerpt }}</p>
+        {% endif %}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</article>
+
+<script>
+function showCat(type, btn) {
+  document.querySelectorAll('.text-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.text-item').forEach(el => {
+    el.style.display = el.dataset.type === type ? '' : 'none';
+  });
+}
+showCat('gedicht', document.querySelector('.text-tab'));
+</script>

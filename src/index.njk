@@ -1,8 +1,150 @@
 ---
 layout: base.njk
-title: Willkommen
+title: Jochen Hornung
+bodyClass: home-page
 ---
-<div class="hero">
-  <h1>Name</h1>
-  <p>Ein Satz, der alles sagt.</p>
+<div class="hero-bg">
+  <canvas id="water"></canvas>
 </div>
+
+<section class="hero">
+  <h1 class="hero-title">Jochen Hornung</h1>
+  <p class="hero-sub">Raum für das, was wirklich ist.</p>
+  <p class="hero-mantra">Du bist das Wasser.</p>
+
+  <nav class="hero-nav">
+    <a href="/texte/">Texte</a>
+    <a href="/begleitung/">Begleitung</a>
+    <a href="/werkzeuge/">Werkzeuge</a>
+    <a href="/innenwelt/">Innenwelt</a>
+  </nav>
+
+  <div class="scroll-hint"><span></span></div>
+</section>
+
+<section class="section">
+  <p class="section-label">Was hier passiert</p>
+  <p>Ich gehe nach innen. Jeden Tag ein Stück tiefer. Was ich dabei finde, teile ich — in Texten, in Werkzeugen, in der Begleitung von Menschen, die Tiefe suchen.</p>
+  <p>Ich bin Coach, Vater, Architekt digitaler Werkzeuge. Ich habe ADHS, Traumaerfahrungen und eine Geschichte mit Sucht. Ich kenne die dunklen Orte. Ich war selbst dort. Das ist keine Visitenkarte — das ist die Wahrheit.</p>
+  <a href="/innenwelt/" class="section-cta">Mehr erfahren &rarr;</a>
+</section>
+
+<section class="section">
+  <p class="section-label">Drei Gesichter</p>
+  <p>Ich habe aufgehört, so zu tun, als wäre ich nur einer.</p>
+  <div class="faces">
+    <div class="face">
+      <p class="face-name">Der Architekt</p>
+      <p>Baut Systeme, die halten, wenn alles andere schwankt. Denkt in Strukturen. Braucht Aufgaben und sichtbare Ergebnisse.</p>
+    </div>
+    <div class="face">
+      <p class="face-name">Der Verwundete</p>
+      <p>Schreibt Gedichte in der Reha. Schreibt seinem Vater Briefe der Vergebung. Hat Angst vor Sichtbarkeit. Braucht Halt.</p>
+    </div>
+    <div class="face face--dark">
+      <p class="face-name">Der Dunkle</p>
+      <p>Jagt Dopamin. Ist wütend. Will manchmal alles verbrennen. Braucht Kanäle, nicht Unterdrückung. Schützt die Grenzen.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <p class="section-label">Zuletzt geschrieben</p>
+  {% set latest = collections.sortedTexte | first %}
+  {% if latest %}
+  <div class="text-item">
+    <a href="{{ latest.url }}">
+      <p class="text-item-title">{{ latest.data.title }}</p>
+      <p class="text-item-meta">{{ latest.date | readableDate }} — {{ latest.data.type }}</p>
+      {% if latest.data.excerpt %}
+      <p class="text-item-excerpt">{{ latest.data.excerpt }}</p>
+      {% endif %}
+    </a>
+  </div>
+  <a href="/texte/" class="section-cta">Alle Texte &rarr;</a>
+  {% endif %}
+</section>
+
+<script>
+// Wasser-Partikel — reagieren auf Theme
+(function() {
+  const c = document.getElementById('water');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  let w, h, particles = [];
+  const N = 80;
+
+  function getColors() {
+    const s = getComputedStyle(document.documentElement);
+    return {
+      line: s.getPropertyValue('--accent').trim(),
+      dot: s.getPropertyValue('--accent-glow').trim() || s.getPropertyValue('--accent').trim(),
+    };
+  }
+
+  function hexToRgb(hex) {
+    hex = hex.replace('#','');
+    return {
+      r: parseInt(hex.substring(0,2),16),
+      g: parseInt(hex.substring(2,4),16),
+      b: parseInt(hex.substring(4,6),16)
+    };
+  }
+
+  function resize() {
+    w = c.width = window.innerWidth;
+    h = c.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  for (let i = 0; i < N; i++) {
+    particles.push({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.15 - 0.05,
+      r: Math.random() * 2 + 0.5,
+      a: Math.random() * 0.15 + 0.03,
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, w, h);
+    const colors = getColors();
+    const lineRgb = hexToRgb(colors.line);
+    const dotRgb = hexToRgb(colors.dot);
+
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const d = Math.sqrt(dx*dx + dy*dy);
+        if (d < 150) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(${lineRgb.r},${lineRgb.g},${lineRgb.b},${0.08 * (1 - d/150)})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+
+    for (const p of particles) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${dotRgb.r},${dotRgb.g},${dotRgb.b},${p.a})`;
+      ctx.fill();
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < -10) p.x = w + 10;
+      if (p.x > w + 10) p.x = -10;
+      if (p.y < -10) p.y = h + 10;
+      if (p.y > h + 10) p.y = -10;
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>

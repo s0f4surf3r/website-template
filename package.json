@@ -1,15 +1,12 @@
 {
-  "name": "website-template",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "jochen-hornung-v2",
+  "version": "2.0.0",
+  "description": "Du bist das Wasser.",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "eleventy",
+    "start": "eleventy --serve",
+    "clean": "rm -rf _site"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "@11ty/eleventy": "^2.0.1"
   }

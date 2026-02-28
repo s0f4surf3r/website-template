@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farbpalette – Graffiti</title>
+<style>
+  :root {
+    --color-bg:      #0b0b37;
+    --color-navy:    #0b0b63;
+    --color-cobalt:  #0a0ae6;
+    --color-purple:  #5a326e;
+    --color-red:     #fd0b21;
+    --color-orange:  #fa6e32;
+    --color-yellow:  #fafa0a;
+    --color-mint:    #75ab87;
+    --color-pink:    #fd8fa5;
+    --color-cream:   #fdfde7;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+    background: var(--color-bg);
+    color: var(--color-cream);
+    padding: 48px 40px;
+    min-height: 100vh;
+  }
+
+  h1 {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--color-purple);
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+    color: #3a3a6a;
+    margin-bottom: 48px;
+    letter-spacing: 0.5px;
+  }
+
+  .section { margin-bottom: 56px; }
+
+  .section h2 {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #3a3a6a;
+    margin-bottom: 20px;
+  }
+
+  /* SWATCHES */
+  .swatches {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .swatch {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100px;
+  }
+
+  .swatch-color {
+    width: 100px;
+    height: 72px;
+    border-radius: 10px;
+  }
+
+  .swatch-hex {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--color-cream);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .swatch-label {
+    font-size: 10px;
+    color: #4a4a88;
+    letter-spacing: 0.3px;
+  }
+
+  /* GRADIENT */
+  .gradient-strip {
+    height: 56px;
+    border-radius: 14px;
+    background: linear-gradient(to right,
+      #0b0b37,
+      #0a0ae6,
+      #5a326e,
+      #fd0b21,
+      #fa6e32,
+      #fafa0a,
+      #75ab87,
+      #fd8fa5,
+      #fdfde7
+    );
+    max-width: 680px;
+  }
+
+  /* DEMO — street art card */
+  .demo {
+    background: var(--color-navy);
+    border-radius: 20px;
+    padding: 36px 40px;
+    max-width: 500px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #1a1a7a;
+  }
+
+  .demo::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(to right, #fd0b21, #fa6e32, #fafa0a, #75ab87, #fd8fa5);
+  }
+
+  .demo .tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--color-yellow);
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .demo .headline {
+    font-size: 38px;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -1px;
+    margin-bottom: 6px;
+  }
+
+  .demo .headline .r { color: var(--color-red); }
+  .demo .headline .o { color: var(--color-orange); }
+  .demo .headline .y { color: var(--color-yellow); }
+  .demo .headline .m { color: var(--color-mint); }
+  .demo .headline .p { color: var(--color-pink); }
+
+  .demo .sub {
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--color-cobalt);
+    margin-bottom: 28px;
+  }
+
+  .demo p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #8888c0;
+    margin-bottom: 28px;
+    max-width: 360px;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-decoration: none;
+    display: inline-block;
+    text-transform: uppercase;
+  }
+
+  .btn-red    { background: var(--color-red);    color: var(--color-cream); }
+  .btn-cobalt { background: var(--color-cobalt);  color: var(--color-cream); }
+  .btn-yellow { background: var(--color-yellow);  color: var(--color-bg); }
+
+  /* CSS BLOCK */
+  .css-block {
+    background: #060618;
+    border-radius: 14px;
+    padding: 28px 32px;
+    font-size: 13px;
+    font-family: 'SF Mono', 'Fira Mono', 'Menlo', monospace;
+    line-height: 2;
+    color: #3a3a6a;
+    max-width: 480px;
+    border: 1px solid #12124a;
+  }
+
+  .css-block .prop { color: var(--color-pink); }
+  .css-block .val  { color: var(--color-yellow); }
+  .css-block .key  { color: #4a4a88; }
+</style>
+</head>
+<body>
+
+<h1>Farbpalette · Graffiti</h1>
+<p class="subtitle">Street Art · Urban · Berlin</p>
+
+<!-- SWATCHES -->
+<div class="section">
+  <h2>Farben</h2>
+  <div class="swatches">
+    <div class="swatch">
+      <div class="swatch-color" style="background:#0b0b37; border:1px solid #1a1a5a;"></div>
+      <div class="swatch-hex">#0b0b37</div>
+      <div class="swatch-label">Nacht / BG</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#0b0b63;"></div>
+      <div class="swatch-hex">#0b0b63</div>
+      <div class="swatch-label">Navy / Surface</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#0a0ae6;"></div>
+      <div class="swatch-hex">#0a0ae6</div>
+      <div class="swatch-label">Cobalt / Electric</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#5a326e;"></div>
+      <div class="swatch-hex">#5a326e</div>
+      <div class="swatch-label">Lila / Schatten</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#fd0b21;"></div>
+      <div class="swatch-hex">#fd0b21</div>
+      <div class="swatch-label">Rot / Knall</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#fa6e32;"></div>
+      <div class="swatch-hex">#fa6e32</div>
+      <div class="swatch-label">Orange / Feuer</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#fafa0a;"></div>
+      <div class="swatch-hex">#fafa0a</div>
+      <div class="swatch-label">Gelb / Strom</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#75ab87;"></div>
+      <div class="swatch-hex">#75ab87</div>
+      <div class="swatch-label">Mint / Atem</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#fd8fa5;"></div>
+      <div class="swatch-hex">#fd8fa5</div>
+      <div class="swatch-label">Pink / Zart</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-color" style="background:#fdfde7; border:1px solid #d8d8b0;"></div>
+      <div class="swatch-hex">#fdfde7</div>
+      <div class="swatch-label">Cream / Text</div>
+    </div>
+  </div>
+</div>
+
+<!-- GRADIENT -->
+<div class="section">
+  <h2>Verlauf</h2>
+  <div class="gradient-strip"></div>
+</div>
+
+<!-- DEMO -->
+<div class="section">
+  <h2>Anwendungsbeispiel</h2>
+  <div class="demo">
+    <span class="tag">Street Art · Berlin</span>
+    <div class="headline">
+      <span class="r">F</span><span class="o">A</span><span class="y">R</span><span class="m">B</span><span class="p">E</span>
+    </div>
+    <div class="sub">lebt. atmet. schreit.</div>
+    <p>Wo Wände sprechen und jede Farbe eine Haltung ist. Laut sein ist erlaubt.</p>
+    <div class="btn-row">
+      <a href="#" class="btn btn-red">Entdecken</a>
+      <a href="#" class="btn btn-cobalt">Galerie</a>
+      <a href="#" class="btn btn-yellow">Kontakt</a>
+    </div>
+  </div>
+</div>
+
+<!-- CSS VARIABLES -->
+<div class="section">
+  <h2>CSS Variables</h2>
+  <div class="css-block">
+    <span class="key">:root</span> {<br>
+    &nbsp;&nbsp;<span class="prop">--color-bg:</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="val">#0b0b37</span>;<br>
+    &nbsp;&nbsp;<span class="prop">--color-navy:</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="val">#0b0b63</span>;<br>
+    &nbsp;&nbsp;<span class="prop">--color-cobalt:</span>&nbsp;&nbsp;<span class="val">#0a0ae6</span>;<br>
+    &nbsp;&nbsp;<span class="prop">--color-purple:</span>&nbsp;&nbsp;<span class="val">#5a326e</span>;<br>
+    &nbsp;&nbsp;<span class="prop">--color-red:</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="val">#fd0b21</span>;<br>
+    &nbsp;&nbsp;<span class="prop">--color-orange:</span>&nbsp;&nbsp;<span class="val">#fa6e32</span>;<br>
+    &nbsp;&nbsp;<span class="prop">--color-yellow:</span>&nbsp;&nbsp;<span class="val">#fafa0a</span>;<br>
+    &nbsp;&nbsp;<span class="prop">--color-mint:</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="val">#75ab87</span>;<br>
+    &nbsp;&nbsp;<span class="prop">--color-pink:</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="val">#fd8fa5</span>;<br>
+    &nbsp;&nbsp;<span class="prop">--color-cream:</span>&nbsp;&nbsp;&nbsp;<span class="val">#fdfde7</span>;<br>
+    }
+  </div>
+</div>
+
+</body>
+</html>

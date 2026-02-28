@@ -3,16 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ title }}</title>
-  {% if description %}<meta name="description" content="{{ description }}">{% endif %}
+  <title>{% if title %}{{ title }} — {% endif %}Jochen Hornung</title>
+  <meta name="description" content="{{ description or 'Du bist das Wasser.' }}">
+  <meta property="og:title" content="{{ title or 'Jochen Hornung' }}">
+  <meta property="og:description" content="{{ description or 'Du bist das Wasser.' }}">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="/images/favicon.ico">
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
   <link rel="stylesheet" href="/css/style.css">
+  <script>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t);})()</script>
 </head>
-<body>
-  <header>
-    <nav>
-      <a href="/">Start</a>
-      <a href="/ueber/">Über mich</a>
-      <a href="/kontakt/">Kontakt</a>
+<body class="{{ bodyClass or '' }}">
+
+  <header class="site-header">
+    <a href="/" class="site-name">Jochen Hornung</a>
+
+    <div class="theme-switcher" aria-label="Farbpalette wählen">
+      <button class="theme-dot theme-dot--jsphere active" onclick="setTheme('')" title="J-Sphere · Teal & Coral"></button>
+      <button class="theme-dot theme-dot--gym" onclick="setTheme('gym')" title="Gym · Beton & Magenta"></button>
+      <button class="theme-dot theme-dot--graffiti" onclick="setTheme('graffiti')" title="Graffiti · Urban & Laut"></button>
+    </div>
+
+    <button class="menu-toggle" aria-label="Menü öffnen" onclick="document.body.classList.toggle('menu-open')">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-nav">
+      <a href="/texte/">Texte</a>
+      <a href="/begleitung/">Begleitung</a>
+      <a href="/werkzeuge/">Werkzeuge</a>
+      <a href="/innenwelt/">Innenwelt</a>
     </nav>
   </header>
 
@@ -20,11 +39,41 @@
     {{ content | safe }}
   </main>
 
-  <footer>
+  <footer class="site-footer">
+    <p class="footer-quote">Du bist das Wasser.</p>
     <nav>
       <a href="/impressum/">Impressum</a>
       <a href="/datenschutz/">Datenschutz</a>
+      <a href="mailto:kontakt@jochenhornung.de">Kontakt</a>
     </nav>
+    <p class="copyright">&copy; 2026 Jochen Hornung</p>
   </footer>
+
+  <script>
+  function setTheme(name) {
+    var html = document.documentElement;
+    if (name) {
+      html.setAttribute('data-theme', name);
+      localStorage.setItem('theme', name);
+    } else {
+      html.removeAttribute('data-theme');
+      localStorage.removeItem('theme');
+    }
+    document.querySelectorAll('.theme-dot').forEach(function(dot) {
+      dot.classList.remove('active');
+    });
+    var sel = name ? '.theme-dot--' + name : '.theme-dot--jsphere';
+    var el = document.querySelector(sel);
+    if (el) el.classList.add('active');
+  }
+  (function() {
+    var t = localStorage.getItem('theme') || '';
+    var sel = t ? '.theme-dot--' + t : '.theme-dot--jsphere';
+    document.querySelectorAll('.theme-dot').forEach(function(d) { d.classList.remove('active'); });
+    var el = document.querySelector(sel);
+    if (el) el.classList.add('active');
+  })();
+  </script>
+
 </body>
 </html>

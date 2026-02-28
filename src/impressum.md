@@ -3,15 +3,18 @@ layout: page.njk
 title: Impressum
 ---
 
-**Angaben gemäß § 5 TMG**
+## Angaben gemäß § 5 TMG
 
-Vorname Nachname
-Straße Nr.
-PLZ Ort
+Jochen Hornung
+Schmidtstr. 11
+10179 Berlin
 
-**Kontakt**
-E-Mail: deine@email.de
+E-Mail: [kontakt@jochenhornung.de](mailto:kontakt@jochenhornung.de)
 
-**Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV**
+## Haftungsausschluss
 
-Vorname Nachname
+Die Inhalte dieser Seiten wurden mit größter Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte kann jedoch keine Gewähr übernommen werden.
+
+## EU-Streitschlichtung
+
+Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: [https://ec.europa.eu/consumers/odr](https://ec.europa.eu/consumers/odr)

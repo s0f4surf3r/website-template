@@ -1,0 +1,28 @@
+---
+layout: base.njk
+---
+<article class="text-article">
+  <a href="/texte/" class="back-link">&larr; Texte</a>
+  <header class="text-header">
+    <time>{{ date | readableDate }}</time>
+    <span class="text-type">{{ type }}</span>
+  </header>
+  {% if excerpt %}
+  <p class="text-excerpt">{{ excerpt }}</p>
+  {% endif %}
+  <h1 class="text-title">{{ title }}</h1>
+  <div class="text-body">
+    {{ content | safe }}
+  </div>
+  {% if heroImage %}
+  <figure class="text-hero">
+    <img src="{{ heroImage }}" alt="{{ title }}" loading="lazy">
+  </figure>
+  {% endif %}
+  {% if quellen %}
+  <details class="sources">
+    <summary>Quellen</summary>
+    {{ quellen | markdownify | safe }}
+  </details>
+  {% endif %}
+</article>
