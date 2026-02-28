@@ -121,6 +121,8 @@ select {
   background: var(--accent);
   color: #fff;
 }
+
+#login-form .btn { margin-top: 1.5rem; width: 100%; }
 .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 
 .btn-danger {
