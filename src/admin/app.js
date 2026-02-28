@@ -262,6 +262,15 @@
     const container = $('#editor-container');
     container.innerHTML = '';
 
+    // Reveal Codes Button als Custom Toolbar Item
+    const revealCodesBtn = document.createElement('button');
+    revealCodesBtn.type = 'button';
+    revealCodesBtn.className = 'reveal-codes-btn toastui-editor-toolbar-icons';
+    revealCodesBtn.textContent = '{ }';
+    revealCodesBtn.title = 'Reveal Codes (Alt+F3)';
+    revealCodesBtn.setAttribute('aria-label', 'Reveal Codes — Quellcode anzeigen');
+    revealCodesBtn.addEventListener('click', toggleRevealCodes);
+
     tuiEditor = new toastui.Editor({
       el: container,
       initialEditType: 'wysiwyg',
@@ -276,27 +285,12 @@
         ['ul', 'ol'],
         ['image', 'link'],
         ['code', 'codeblock'],
+        [{ el: revealCodesBtn, tooltip: 'Reveal Codes (Alt+F3)', name: 'revealCodes' }],
       ],
       hooks: {
         addImageBlobHook: handleImageBlobUpload,
       },
     });
-
-    // Reveal Codes Button in Toolbar einfügen
-    const toolbar = container.querySelector('.toastui-editor-toolbar');
-    if (toolbar) {
-      const group = document.createElement('div');
-      group.className = 'toastui-editor-toolbar-group';
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'reveal-codes-btn';
-      btn.textContent = '{ }';
-      btn.title = 'Reveal Codes (Alt+F3)';
-      btn.setAttribute('aria-label', 'Reveal Codes — Quellcode anzeigen');
-      btn.addEventListener('click', toggleRevealCodes);
-      group.appendChild(btn);
-      toolbar.appendChild(group);
-    }
 
     // Alt+F3 Keyboard Shortcut
     container.addEventListener('keydown', (e) => {
