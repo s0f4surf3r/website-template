@@ -58,7 +58,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 }
 
 .view { display: flex; flex-direction: column; height: 100%; }
-.view[hidden] { display: none; }
+[hidden] { display: none !important; }
 
 /* --- Login --- */
 .login-box {
