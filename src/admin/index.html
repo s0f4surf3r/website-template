@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>perfectCMS</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it@14/dist/markdown-it.min.js"></script>
+</head>
+<body>
+  <div id="app">
+
+    <!-- Login -->
+    <div id="view-login" class="view">
+      <div class="login-box">
+        <h1 class="logo">perfectCMS</h1>
+        <p class="login-sub">Inhalte bearbeiten</p>
+        <form id="login-form">
+          <label for="login-email">E-Mail</label>
+          <input type="email" id="login-email" required autocomplete="email">
+          <label for="login-password">Passwort</label>
+          <input type="password" id="login-password" required autocomplete="current-password">
+          <button type="submit" class="btn btn-primary">Anmelden</button>
+          <p id="login-error" class="error" hidden></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- Content-Liste -->
+    <div id="view-list" class="view" hidden>
+      <header class="topbar">
+        <h1 class="topbar-title">perfectCMS</h1>
+        <button id="logout-btn" class="btn btn-ghost">Abmelden</button>
+      </header>
+      <div class="list-container">
+        <div class="tabs">
+          <button class="tab active" data-tab="texte">Texte</button>
+          <button class="tab" data-tab="seiten">Seiten</button>
+        </div>
+        <div id="tab-texte" class="tab-panel">
+          <div class="list-header">
+            <h2>Texte</h2>
+            <button id="new-text-btn" class="btn btn-primary btn-sm">+ Neuer Text</button>
+          </div>
+          <ul id="texte-list" class="content-list"></ul>
+        </div>
+        <div id="tab-seiten" class="tab-panel" hidden>
+          <div class="list-header">
+            <h2>Seiten</h2>
+          </div>
+          <ul id="seiten-list" class="content-list"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Editor -->
+    <div id="view-editor" class="view" hidden>
+      <header class="topbar">
+        <button id="back-btn" class="btn btn-ghost">&larr; Zurück</button>
+        <div class="topbar-actions">
+          <span id="save-status" class="save-status"></span>
+          <button id="delete-btn" class="btn btn-danger btn-sm" hidden>Löschen</button>
+          <button id="save-btn" class="btn btn-primary">Speichern</button>
+        </div>
+      </header>
+
+      <!-- Frontmatter-Felder (Texte) -->
+      <div id="fields-text" class="fields" hidden>
+        <div class="field-row">
+          <div class="field">
+            <label for="f-title">Titel</label>
+            <input type="text" id="f-title" required>
+          </div>
+          <div class="field field-sm">
+            <label for="f-type">Typ</label>
+            <select id="f-type">
+              <option value="Gedicht">Gedicht</option>
+              <option value="Essay">Essay</option>
+              <option value="Notiz">Notiz</option>
+            </select>
+          </div>
+          <div class="field field-sm">
+            <label for="f-date">Datum</label>
+            <input type="date" id="f-date" required>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="f-excerpt">Kurzbeschreibung</label>
+            <textarea id="f-excerpt" rows="2"></textarea>
+          </div>
+          <div class="field field-sm">
+            <label for="f-heroimage">Bild</label>
+            <div class="image-field">
+              <input type="text" id="f-heroimage" placeholder="/images/...">
+              <button type="button" id="upload-hero-btn" class="btn btn-ghost btn-sm">Upload</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Frontmatter-Felder (Seiten) -->
+      <div id="fields-page" class="fields" hidden>
+        <div class="field-row">
+          <div class="field">
+            <label for="fp-title">Titel</label>
+            <input type="text" id="fp-title" required>
+          </div>
+          <div class="field">
+            <label for="fp-subtitle">Untertitel</label>
+            <input type="text" id="fp-subtitle">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="fp-description">Beschreibung</label>
+            <input type="text" id="fp-description">
+          </div>
+        </div>
+      </div>
+
+      <!-- Split-Screen Editor -->
+      <div class="editor-split">
+        <div class="editor-pane">
+          <div class="pane-label">Editor</div>
+          <textarea id="editor" spellcheck="true"></textarea>
+        </div>
+        <div class="preview-pane">
+          <div class="pane-label">Vorschau</div>
+          <div id="preview" class="preview-content"></div>
+        </div>
+      </div>
+
+      <!-- Bild-Upload -->
+      <div class="upload-bar">
+        <input type="file" id="upload-input" accept="image/*" hidden>
+        <button id="upload-btn" class="btn btn-ghost btn-sm">Bild hochladen</button>
+        <span id="upload-status"></span>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
