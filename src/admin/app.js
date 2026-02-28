@@ -15,6 +15,16 @@
   let currentFile = null; // { path, sha, type, isNew }
   let tuiEditor = null;
 
+  // --- Autosave State ---
+  let lastSavedContent = '';
+  let hasUnsavedChanges = false;
+  let isSaving = false;
+
+  function debounce(fn, ms) {
+    let timer;
+    return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); };
+  }
+
   // --- DOM Refs ---
   const $ = (sel) => document.querySelector(sel);
   const viewLogin = $('#view-login');
@@ -210,6 +220,8 @@
     $('#f-excerpt').value = '';
     $('#f-heroimage').value = '';
     initEditor('');
+    lastSavedContent = '';
+    hasUnsavedChanges = false;
     $('#save-status').textContent = '';
   }
 
@@ -249,6 +261,8 @@
     }
 
     initEditor(body);
+    lastSavedContent = getFullContent();
+    hasUnsavedChanges = false;
     $('#save-status').textContent = '';
   }
 
@@ -290,6 +304,9 @@
       },
     });
 
+    // Change-Listener für Autosave
+    tuiEditor.on('change', onContentChange);
+
     // Alt+F3 Keyboard Shortcut
     container.addEventListener('keydown', (e) => {
       if (e.altKey && e.key === 'F3') {
@@ -298,6 +315,15 @@
       }
     });
   }
+
+  // Frontmatter-Felder Change-Listener
+  ['#f-title', '#f-type', '#f-date', '#f-excerpt', '#f-heroimage', '#fp-title', '#fp-subtitle', '#fp-description'].forEach((sel) => {
+    const el = $(sel);
+    if (el) {
+      el.addEventListener('input', onContentChange);
+      el.addEventListener('change', onContentChange);
+    }
+  });
 
   function toggleRevealCodes() {
     if (!tuiEditor) return;
@@ -327,79 +353,131 @@
     reader.readAsDataURL(blob);
   }
 
-  // --- Speichern ---
-  $('#save-btn').addEventListener('click', saveContent);
-
-  async function saveContent() {
-    const saveBtn = $('#save-btn');
-    const status = $('#save-status');
-    saveBtn.disabled = true;
-    status.textContent = 'Speichern...';
-
-    let frontmatter, path;
-
-    if (currentFile.type === 'text') {
-      const title = $('#f-title').value.trim();
-      const type = $('#f-type').value;
-      const date = $('#f-date').value;
-      const excerpt = $('#f-excerpt').value.trim();
-      const heroImage = $('#f-heroimage').value.trim();
-
-      if (!title || !date) {
-        status.textContent = 'Titel und Datum erforderlich';
-        saveBtn.disabled = false;
-        return;
-      }
-
+  // --- Autosave ---
+  function getFullContent() {
+    let frontmatter;
+    if (currentFile && currentFile.type === 'text') {
       frontmatter = {
         layout: 'text',
         tags: 'text',
-        title,
-        date: `${date}T00:00:00.000+01:00`,
-        type,
+        title: $('#f-title').value.trim(),
+        date: `${$('#f-date').value}T00:00:00.000+01:00`,
+        type: $('#f-type').value,
       };
+      const heroImage = $('#f-heroimage').value.trim();
+      const excerpt = $('#f-excerpt').value.trim();
       if (heroImage) frontmatter.heroImage = heroImage;
       if (excerpt) frontmatter.excerpt = excerpt;
-
-      if (currentFile.isNew) {
-        const slug = slugify(title);
-        path = `src/texte/${date}-${slug}.md`;
-        currentFile.path = path;
-      } else {
-        path = currentFile.path;
-      }
-    } else {
-      const title = $('#fp-title').value.trim();
+    } else if (currentFile) {
+      frontmatter = { layout: 'page.njk', title: $('#fp-title').value.trim() };
       const subtitle = $('#fp-subtitle').value.trim();
       const description = $('#fp-description').value.trim();
-
-      frontmatter = { layout: 'page.njk', title };
       if (subtitle) frontmatter.subtitle = subtitle;
       if (description) frontmatter.description = description;
-
-      path = currentFile.path;
-    }
-
-    const body = tuiEditor ? tuiEditor.getMarkdown() : '';
-    const content = buildFile(frontmatter, body);
-
-    const res = await api('PUT', `/api/content/${encodeURIComponent(path)}`, { content });
-
-    if (res && res.status === 200) {
-      currentFile.sha = res.data.sha;
-      currentFile.isNew = false;
-      status.textContent = 'Gespeichert';
-      status.style.color = 'var(--success)';
-      setTimeout(() => {
-        status.textContent = '';
-        status.style.color = '';
-      }, 2000);
     } else {
-      status.textContent = 'Fehler beim Speichern';
-      status.style.color = 'var(--danger)';
+      return '';
     }
+    const body = tuiEditor ? tuiEditor.getMarkdown() : '';
+    return buildFile(frontmatter, body);
+  }
 
-    saveBtn.disabled = false;
+  function onContentChange() {
+    hasUnsavedChanges = true;
+    const status = $('#save-status');
+    status.textContent = 'Ungespeicherte Änderungen';
+    status.style.color = 'var(--accent)';
+    scheduleAutosave();
+  }
+
+  const scheduleAutosave = debounce(() => {
+    if (!currentFile || !currentFile.path) return;
+    if (isSaving) return;
+    if (currentFile.type === 'text') {
+      if (!$('#f-title').value.trim() || !$('#f-date').value) return;
+    }
+    const content = getFullContent();
+    if (content === lastSavedContent) return;
+    saveContent(true);
+  }, 3000);
+
+  // --- Speichern ---
+  $('#save-btn').addEventListener('click', () => saveContent(false));
+
+  async function saveContent(isAuto = false) {
+    if (isSaving) return;
+    isSaving = true;
+
+    const saveBtn = $('#save-btn');
+    const status = $('#save-status');
+    saveBtn.disabled = true;
+    status.textContent = 'Speichert...';
+    status.style.color = 'var(--text-secondary)';
+
+    try {
+      let frontmatter, path;
+
+      if (currentFile.type === 'text') {
+        const title = $('#f-title').value.trim();
+        const type = $('#f-type').value;
+        const date = $('#f-date').value;
+        const excerpt = $('#f-excerpt').value.trim();
+        const heroImage = $('#f-heroimage').value.trim();
+
+        if (!title || !date) {
+          status.textContent = 'Titel und Datum erforderlich';
+          status.style.color = 'var(--danger)';
+          return;
+        }
+
+        frontmatter = {
+          layout: 'text',
+          tags: 'text',
+          title,
+          date: `${date}T00:00:00.000+01:00`,
+          type,
+        };
+        if (heroImage) frontmatter.heroImage = heroImage;
+        if (excerpt) frontmatter.excerpt = excerpt;
+
+        if (currentFile.isNew) {
+          const slug = slugify(title);
+          path = `src/texte/${date}-${slug}.md`;
+          currentFile.path = path;
+        } else {
+          path = currentFile.path;
+        }
+      } else {
+        const title = $('#fp-title').value.trim();
+        const subtitle = $('#fp-subtitle').value.trim();
+        const description = $('#fp-description').value.trim();
+
+        frontmatter = { layout: 'page.njk', title };
+        if (subtitle) frontmatter.subtitle = subtitle;
+        if (description) frontmatter.description = description;
+
+        path = currentFile.path;
+      }
+
+      const body = tuiEditor ? tuiEditor.getMarkdown() : '';
+      const content = buildFile(frontmatter, body);
+
+      const res = await api('PUT', `/api/content/${encodeURIComponent(path)}`, { content });
+
+      if (res && res.status === 200) {
+        currentFile.sha = res.data.sha;
+        currentFile.isNew = false;
+        lastSavedContent = content;
+        hasUnsavedChanges = false;
+        status.textContent = isAuto ? 'Auto-gespeichert' : 'Gespeichert';
+        status.style.color = 'var(--success)';
+      } else {
+        status.textContent = 'Fehler beim Speichern';
+        status.style.color = 'var(--danger)';
+      }
+    } finally {
+      isSaving = false;
+      saveBtn.disabled = false;
+    }
   }
 
   // --- Löschen ---
@@ -587,6 +665,19 @@
     const months = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
     return `${parseInt(d)}. ${months[parseInt(m) - 1]} ${y}`;
   }
+
+  // --- Cmd+S / Ctrl+S ---
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+      e.preventDefault();
+      if (!viewEditor.hidden) saveContent(false);
+    }
+  });
+
+  // --- Warnung bei ungespeicherten Änderungen ---
+  window.addEventListener('beforeunload', (e) => {
+    if (hasUnsavedChanges) { e.preventDefault(); }
+  });
 
   // --- Init ---
   handleRoute();
