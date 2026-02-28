@@ -265,7 +265,7 @@
     // Reveal Codes Button als Custom Toolbar Item
     const revealCodesBtn = document.createElement('button');
     revealCodesBtn.type = 'button';
-    revealCodesBtn.className = 'reveal-codes-btn toastui-editor-toolbar-icons';
+    revealCodesBtn.className = 'reveal-codes-btn';
     revealCodesBtn.textContent = '{ }';
     revealCodesBtn.title = 'Reveal Codes (Alt+F3)';
     revealCodesBtn.setAttribute('aria-label', 'Reveal Codes — Quellcode anzeigen');
@@ -281,10 +281,8 @@
       usageStatistics: false,
       toolbarItems: [
         ['heading', 'bold', 'italic', 'strike'],
-        ['hr', 'quote'],
-        ['ul', 'ol'],
-        ['image', 'link'],
-        ['code', 'codeblock'],
+        ['hr', 'quote', 'ul', 'ol'],
+        ['image', 'link', 'code', 'codeblock'],
         [{ el: revealCodesBtn, tooltip: 'Reveal Codes (Alt+F3)', name: 'revealCodes' }],
       ],
       hooks: {
