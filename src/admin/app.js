@@ -7,7 +7,7 @@
   'use strict';
 
   // --- Config ---
-  const API_URL = localStorage.getItem('cms_api_url') || 'http://localhost:3001';
+  const API_URL = localStorage.getItem('cms_api_url') || 'https://perfectcmstm6mdmqs-cms-api.functions.fnc.fr-par.scw.cloud';
   const md = window.markdownit({ html: true, breaks: true, linkify: true });
 
   // --- State ---
