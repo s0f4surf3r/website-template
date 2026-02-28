@@ -421,6 +421,16 @@ select {
 .CodeMirror-cursor { border-left-color: var(--text) !important; }
 .CodeMirror-selected { background: rgba(74, 158, 255, 0.2) !important; }
 
+/* Markdown-Modus: Preview-Pane Dark Theme */
+.toastui-editor-md-preview {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+.toastui-editor-md-splitter {
+  background: var(--border) !important;
+}
+
 /* Reveal Codes Button */
 .reveal-codes-btn {
   font-family: var(--mono);
