@@ -8,12 +8,12 @@
 
   // --- Config ---
   const API_URL = localStorage.getItem('cms_api_url') || 'https://perfectcmstm6mdmqs-cms-api.functions.fnc.fr-par.scw.cloud';
-  const md = window.markdownit({ html: true, breaks: true, linkify: true });
 
   // --- State ---
   let token = localStorage.getItem('cms_token') || null;
   let contentCache = null;
   let currentFile = null; // { path, sha, type, isNew }
+  let tuiEditor = null;
 
   // --- DOM Refs ---
   const $ = (sel) => document.querySelector(sel);
@@ -47,6 +47,10 @@
     viewLogin.hidden = name !== 'login';
     viewList.hidden = name !== 'list';
     viewEditor.hidden = name !== 'editor';
+    if (name !== 'editor' && tuiEditor) {
+      tuiEditor.destroy();
+      tuiEditor = null;
+    }
   }
 
   function navigate(hash) {
@@ -205,8 +209,7 @@
     $('#f-date').value = today;
     $('#f-excerpt').value = '';
     $('#f-heroimage').value = '';
-    $('#editor').value = '';
-    $('#preview').innerHTML = '';
+    initEditor('');
     $('#save-status').textContent = '';
   }
 
@@ -245,18 +248,91 @@
       $('#fp-description').value = frontmatter.description || '';
     }
 
-    $('#editor').value = body;
-    updatePreview();
+    initEditor(body);
     $('#save-status').textContent = '';
   }
 
-  // --- Preview ---
-  const editor = $('#editor');
-  editor.addEventListener('input', updatePreview);
+  // --- Toast UI Editor ---
+  function initEditor(initialValue) {
+    if (tuiEditor) {
+      tuiEditor.destroy();
+      tuiEditor = null;
+    }
 
-  function updatePreview() {
-    const html = md.render(editor.value);
-    $('#preview').innerHTML = html;
+    const container = $('#editor-container');
+    container.innerHTML = '';
+
+    tuiEditor = new toastui.Editor({
+      el: container,
+      initialEditType: 'wysiwyg',
+      initialValue: initialValue || '',
+      previewStyle: 'vertical',
+      theme: 'dark',
+      hideModeSwitch: true,
+      usageStatistics: false,
+      toolbarItems: [
+        ['heading', 'bold', 'italic', 'strike'],
+        ['hr', 'quote'],
+        ['ul', 'ol'],
+        ['image', 'link'],
+        ['code', 'codeblock'],
+      ],
+      hooks: {
+        addImageBlobHook: handleImageBlobUpload,
+      },
+    });
+
+    // Reveal Codes Button in Toolbar einfügen
+    const toolbar = container.querySelector('.toastui-editor-toolbar');
+    if (toolbar) {
+      const group = document.createElement('div');
+      group.className = 'toastui-editor-toolbar-group';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'reveal-codes-btn';
+      btn.textContent = '{ }';
+      btn.title = 'Reveal Codes (Alt+F3)';
+      btn.setAttribute('aria-label', 'Reveal Codes — Quellcode anzeigen');
+      btn.addEventListener('click', toggleRevealCodes);
+      group.appendChild(btn);
+      toolbar.appendChild(group);
+    }
+
+    // Alt+F3 Keyboard Shortcut
+    container.addEventListener('keydown', (e) => {
+      if (e.altKey && e.key === 'F3') {
+        e.preventDefault();
+        toggleRevealCodes();
+      }
+    });
+  }
+
+  function toggleRevealCodes() {
+    if (!tuiEditor) return;
+    const current = tuiEditor.isWysiwygMode() ? 'wysiwyg' : 'markdown';
+    const next = current === 'wysiwyg' ? 'markdown' : 'wysiwyg';
+    tuiEditor.changeMode(next);
+
+    // Button-Status aktualisieren
+    const btn = document.querySelector('.reveal-codes-btn');
+    if (btn) {
+      btn.classList.toggle('active', next === 'markdown');
+    }
+  }
+
+  function handleImageBlobUpload(blob, callback) {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = reader.result.split(',')[1];
+      const filename = blob.name ? blob.name.toLowerCase().replace(/[^a-z0-9._-]/g, '-') : 'bild.png';
+      const res = await api('POST', '/api/upload', { filename, data: base64 });
+      if (res && res.status === 200) {
+        callback(res.data.path, blob.name || 'Bild');
+      } else {
+        callback('', 'Upload fehlgeschlagen');
+      }
+    };
+    reader.readAsDataURL(blob);
   }
 
   // --- Speichern ---
@@ -312,7 +388,7 @@
       path = currentFile.path;
     }
 
-    const body = editor.value;
+    const body = tuiEditor ? tuiEditor.getMarkdown() : '';
     const content = buildFile(frontmatter, body);
 
     const res = await api('PUT', `/api/content/${encodeURIComponent(path)}`, { content });
@@ -391,14 +467,8 @@
 
       if (target === 'hero') {
         $('#f-heroimage').value = imagePath;
-      } else {
-        // Markdown-Link in Editor einfügen
-        const editorEl = $('#editor');
-        const pos = editorEl.selectionStart;
-        const text = editorEl.value;
-        const insert = `![${file.name}](${imagePath})`;
-        editorEl.value = text.slice(0, pos) + insert + text.slice(pos);
-        updatePreview();
+      } else if (tuiEditor) {
+        tuiEditor.insertText(`![${file.name}](${imagePath})`);
       }
 
       setTimeout(() => (statusEl.textContent = ''), 3000);

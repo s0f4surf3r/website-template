@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>perfectCMS</title>
   <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/markdown-it@14/dist/markdown-it.min.js"></script>
+  <link rel="stylesheet" href="https://uicdn.toast.com/editor/3.2.9/toastui-editor.min.css">
+  <link rel="stylesheet" href="https://uicdn.toast.com/editor/3.2.9/theme/toastui-editor-dark.min.css">
 </head>
 <body>
   <div id="app">
@@ -119,17 +120,8 @@
         </div>
       </div>
 
-      <!-- Split-Screen Editor -->
-      <div class="editor-split">
-        <div class="editor-pane">
-          <div class="pane-label" id="editor-label">Editor</div>
-          <textarea id="editor" spellcheck="true" aria-labelledby="editor-label"></textarea>
-        </div>
-        <div class="preview-pane">
-          <div class="pane-label" id="preview-label">Vorschau</div>
-          <div id="preview" class="preview-content" role="region" aria-labelledby="preview-label" aria-live="polite"></div>
-        </div>
-      </div>
+      <!-- WYSIWYG Editor (Toast UI) -->
+      <div id="editor-container" class="editor-container" role="region" aria-label="Inhaltseditor"></div>
 
       <!-- Bild-Upload -->
       <div class="upload-bar">
@@ -141,6 +133,7 @@
 
   </div>
 
+  <script src="https://uicdn.toast.com/editor/3.2.9/toastui-editor-all.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
