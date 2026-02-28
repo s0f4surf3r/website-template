@@ -347,6 +347,10 @@ select {
 .toastui-editor-toolbar {
   background: var(--bg-elevated) !important;
   border-bottom: 1px solid var(--border) !important;
+  height: auto !important;
+  min-height: 46px !important;
+  padding: 4px 12px !important;
+  align-items: center;
 }
 
 .toastui-editor-toolbar-icons {
