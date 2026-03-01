@@ -1,6 +1,6 @@
 /**
  * perfectCMS — Frontend (Vanilla JS SPA)
- * Hash-basierter Router: #login, #list, #edit/:path
+ * Hash-basierter Router: #login, #list, #edit/:path, #new-text, #magic/:token
  */
 
 (function () {
@@ -49,7 +49,7 @@
 
     const data = await res.json().catch(() => null);
 
-    if (res.status === 401 && path !== '/api/login') {
+    if (res.status === 401 && !path.startsWith('/api/login') && path !== '/api/magic-link') {
       logout();
       return null;
     }
@@ -72,9 +72,10 @@
     viewLogin.hidden = name !== 'login';
     viewList.hidden = name !== 'list';
     viewEditor.hidden = name !== 'editor';
-    if (name !== 'editor' && tuiEditor) {
-      tuiEditor.destroy();
-      tuiEditor = null;
+    if (name !== 'editor') {
+      if (tuiEditor) { tuiEditor.destroy(); tuiEditor = null; }
+      const vp = $('#versions-panel');
+      if (vp) vp.hidden = true;
     }
   }
 
@@ -84,6 +85,13 @@
 
   function handleRoute() {
     const hash = window.location.hash || '#';
+
+    // Magic Link Token — immer verarbeiten, auch ohne bestehende Session
+    const magicMatch = hash.match(/^#magic\/(.+)$/);
+    if (magicMatch) {
+      handleMagicToken(magicMatch[1]);
+      return;
+    }
 
     if (!token) {
       showView('login');
@@ -116,7 +124,43 @@
 
   window.addEventListener('hashchange', handleRoute);
 
-  // --- Login ---
+  // --- Magic Link ---
+  $('#magic-link-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = $('#login-email').value.trim();
+    const statusEl = $('#magic-link-status');
+    const errorEl = $('#login-error');
+    errorEl.hidden = true;
+
+    if (!email) {
+      errorEl.textContent = 'E-Mail-Adresse eingeben';
+      errorEl.hidden = false;
+      return;
+    }
+
+    statusEl.textContent = 'Sende Magic Link...';
+    statusEl.className = 'magic-link-status';
+    statusEl.hidden = false;
+
+    const res = await api('POST', '/api/magic-link', { email });
+
+    if (res && res.status === 200) {
+      statusEl.textContent = 'Link wurde gesendet! Prüfe dein E-Mail-Postfach.';
+      statusEl.className = 'magic-link-status success';
+    } else {
+      statusEl.textContent = errorMsg(res, 'Fehler beim Senden');
+      statusEl.className = 'magic-link-status error';
+    }
+  });
+
+  // --- Passwort-Fallback Toggle ---
+  $('#toggle-password-login').addEventListener('click', () => {
+    const form = $('#login-form');
+    form.hidden = !form.hidden;
+    if (!form.hidden) $('#login-password').focus();
+  });
+
+  // --- Login (Passwort) ---
   $('#login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = $('#login-email').value.trim();
@@ -250,6 +294,8 @@
     $('#fields-text').hidden = false;
     $('#fields-page').hidden = true;
     $('#delete-btn').hidden = true;
+    $('#versions-btn').hidden = true;
+    closeVersions();
 
     // Felder leeren
     $('#f-title').value = '';
@@ -274,6 +320,8 @@
     $('#fields-text').hidden = !isText;
     $('#fields-page').hidden = isText;
     $('#delete-btn').hidden = !isText; // Seiten nicht löschbar
+    $('#versions-btn').hidden = false; // Versionen bei bestehenden Dateien
+    closeVersions();
     $('#save-status').textContent = 'Laden...';
 
     const res = await api('GET', `/api/content/${encodeURIComponent(path)}`);
@@ -751,6 +799,205 @@
     const [y, m, d] = dateStr.split('-');
     const months = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
     return `${parseInt(d)}. ${months[parseInt(m) - 1]} ${y}`;
+  }
+
+  // --- Magic Token Handler ---
+  async function handleMagicToken(magicToken) {
+    showView('login');
+    const errorEl = $('#login-error');
+    const statusEl = $('#magic-link-status');
+    statusEl.textContent = 'Magic Link wird geprüft...';
+    statusEl.className = 'magic-link-status';
+    statusEl.hidden = false;
+    errorEl.hidden = true;
+
+    const res = await api('POST', '/api/login/magic', { token: magicToken });
+
+    if (res && res.status === 200 && res.data.token) {
+      token = res.data.token;
+      localStorage.setItem('cms_token', token);
+      statusEl.hidden = true;
+      navigate('#list');
+    } else {
+      statusEl.textContent = errorMsg(res, 'Magic Link ungültig oder abgelaufen');
+      statusEl.className = 'magic-link-status error';
+    }
+  }
+
+  // --- Einstellungen Modal ---
+  $('#settings-btn').addEventListener('click', () => {
+    $('#settings-modal').hidden = false;
+    $('#pw-current').value = '';
+    $('#pw-new').value = '';
+    $('#pw-confirm').value = '';
+    $('#pw-status').hidden = true;
+    $('#pw-current').focus();
+  });
+
+  $('#settings-close').addEventListener('click', () => {
+    $('#settings-modal').hidden = true;
+  });
+
+  $('#settings-modal').addEventListener('click', (e) => {
+    if (e.target === $('#settings-modal')) $('#settings-modal').hidden = true;
+  });
+
+  $('#password-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const oldPassword = $('#pw-current').value;
+    const newPassword = $('#pw-new').value;
+    const confirmPassword = $('#pw-confirm').value;
+    const statusEl = $('#pw-status');
+
+    if (newPassword.length < 8) {
+      statusEl.textContent = 'Neues Passwort muss mindestens 8 Zeichen lang sein';
+      statusEl.className = 'pw-status error';
+      statusEl.hidden = false;
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      statusEl.textContent = 'Passwörter stimmen nicht überein';
+      statusEl.className = 'pw-status error';
+      statusEl.hidden = false;
+      return;
+    }
+
+    statusEl.textContent = 'Passwort wird geändert...';
+    statusEl.className = 'pw-status';
+    statusEl.hidden = false;
+
+    const res = await api('PUT', '/api/password', { oldPassword, newPassword });
+
+    if (res && res.status === 200) {
+      statusEl.textContent = 'Passwort erfolgreich geändert';
+      statusEl.className = 'pw-status success';
+      $('#pw-current').value = '';
+      $('#pw-new').value = '';
+      $('#pw-confirm').value = '';
+    } else {
+      statusEl.textContent = errorMsg(res, 'Fehler beim Ändern des Passworts');
+      statusEl.className = 'pw-status error';
+    }
+  });
+
+  // --- Versionsverlauf ---
+  let versionsData = [];
+  let versionPreviewContent = null;
+
+  $('#versions-btn').addEventListener('click', () => {
+    if ($('#versions-panel').hidden) {
+      loadVersions();
+    } else {
+      closeVersions();
+    }
+  });
+
+  $('#versions-close').addEventListener('click', closeVersions);
+
+  function closeVersions() {
+    $('#versions-panel').hidden = true;
+    $('#version-preview').hidden = true;
+    versionsData = [];
+    versionPreviewContent = null;
+  }
+
+  async function loadVersions() {
+    if (!currentFile || !currentFile.path) return;
+
+    const panel = $('#versions-panel');
+    const list = $('#versions-list');
+    panel.hidden = false;
+    list.innerHTML = '<div class="loading">Laden...</div>';
+    $('#version-preview').hidden = true;
+
+    const res = await api('GET', `/api/versions/${encodeURIComponent(currentFile.path)}`);
+
+    if (!res || res.status !== 200 || !res.data.versions) {
+      list.innerHTML = '<div class="loading">Keine Versionen gefunden</div>';
+      return;
+    }
+
+    versionsData = res.data.versions;
+
+    list.innerHTML = versionsData.map((v, i) => {
+      const date = new Date(v.date);
+      const dateStr = date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const timeStr = date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+      const badge = i === 0 ? ' <span class="version-badge">Aktuell</span>' : '';
+      const msg = v.message.split('\n')[0].replace(/ via perfectCMS.*$/, '');
+      return `<div class="version-item${i === 0 ? ' active' : ''}" tabindex="0" data-idx="${i}" data-sha="${v.sha}">
+        <div class="version-date">${dateStr}, ${timeStr}${badge}</div>
+        <div class="version-message">${escapeHtml(msg)}</div>
+      </div>`;
+    }).join('');
+
+    list.querySelectorAll('.version-item').forEach(item => {
+      const openVersion = () => {
+        const idx = parseInt(item.dataset.idx);
+        if (idx === 0) return; // Aktuell, nichts laden
+        list.querySelectorAll('.version-item').forEach(v => v.classList.remove('active'));
+        item.classList.add('active');
+        loadVersionPreview(item.dataset.sha, versionsData[idx]);
+      };
+      item.addEventListener('click', openVersion);
+      item.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openVersion(); }
+      });
+    });
+  }
+
+  async function loadVersionPreview(sha, version) {
+    const preview = $('#version-preview');
+    const contentEl = $('#version-preview-content');
+    const dateEl = $('#version-preview-date');
+
+    preview.hidden = false;
+    contentEl.textContent = 'Laden...';
+
+    const date = new Date(version.date);
+    dateEl.textContent = date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+    const res = await api('GET', `/api/content/${encodeURIComponent(currentFile.path)}?ref=${sha}`);
+
+    if (res && res.status === 200) {
+      versionPreviewContent = res.data.content;
+      contentEl.textContent = res.data.content;
+    } else {
+      contentEl.textContent = 'Fehler beim Laden der Version';
+      versionPreviewContent = null;
+    }
+  }
+
+  $('#version-restore').addEventListener('click', () => {
+    if (!versionPreviewContent) return;
+
+    const { frontmatter, body } = parseFrontmatter(versionPreviewContent);
+
+    if (currentFile.type === 'text') {
+      $('#f-title').value = frontmatter.title || '';
+      $('#f-type').value = frontmatter.type || 'Gedicht';
+      $('#f-date').value = frontmatter.date ? frontmatter.date.slice(0, 10) : '';
+      $('#f-excerpt').value = frontmatter.excerpt || '';
+      $('#f-heroimage').value = frontmatter.heroImage || '';
+      $('#f-draft').checked = frontmatter.draft === 'true' || frontmatter.draft === true;
+    } else {
+      $('#fp-title').value = frontmatter.title || '';
+      $('#fp-subtitle').value = frontmatter.subtitle || '';
+      $('#fp-description').value = frontmatter.description || '';
+    }
+
+    if (tuiEditor) {
+      tuiEditor.setMarkdown(body);
+    }
+
+    closeVersions();
+    onContentChange();
+    updatePublishButton();
+  });
+
+  function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
   // --- Cmd+S / Ctrl+S ---

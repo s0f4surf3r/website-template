@@ -16,14 +16,24 @@
       <div class="login-box">
         <h1 class="logo">perfectCMS</h1>
         <p class="login-sub">Inhalte bearbeiten</p>
-        <form id="login-form" novalidate>
+
+        <!-- Magic Link (prominent) -->
+        <form id="magic-link-form" novalidate>
           <label for="login-email">E-Mail</label>
           <input type="email" id="login-email" required autocomplete="email" aria-required="true">
+          <button type="submit" class="btn btn-primary">Magic Link senden</button>
+          <p id="magic-link-status" class="magic-link-status" role="status" hidden></p>
+        </form>
+
+        <!-- Passwort-Fallback -->
+        <button id="toggle-password-login" class="btn-link" type="button">Oder mit Passwort anmelden</button>
+        <form id="login-form" hidden novalidate>
           <label for="login-password">Passwort</label>
           <input type="password" id="login-password" required autocomplete="current-password" aria-required="true">
           <button type="submit" class="btn btn-primary">Anmelden</button>
-          <p id="login-error" class="error" role="alert" hidden></p>
         </form>
+
+        <p id="login-error" class="error" role="alert" hidden></p>
       </div>
     </div>
 
@@ -31,7 +41,10 @@
     <div id="view-list" class="view" hidden>
       <header class="topbar">
         <h1 class="topbar-title">perfectCMS</h1>
-        <button id="logout-btn" class="btn btn-ghost">Abmelden</button>
+        <div class="topbar-actions">
+          <button id="settings-btn" class="btn btn-ghost btn-sm" aria-label="Einstellungen">Einstellungen</button>
+          <button id="logout-btn" class="btn btn-ghost">Abmelden</button>
+        </div>
       </header>
       <main class="list-container">
         <div class="tabs" role="tablist" aria-label="Inhaltstypen">
@@ -60,6 +73,7 @@
         <button id="back-btn" class="btn btn-ghost" aria-label="Zurück zur Liste">&larr; Zurück</button>
         <div class="topbar-actions">
           <span id="save-status" class="save-status" role="status" aria-live="polite"></span>
+          <button id="versions-btn" class="btn btn-ghost btn-sm" hidden>Versionen</button>
           <button id="delete-btn" class="btn btn-danger btn-sm" hidden>Löschen</button>
           <button id="publish-btn" class="btn btn-success" hidden>Veröffentlichen</button>
           <button id="save-btn" class="btn btn-primary">Speichern</button>
@@ -133,6 +147,43 @@
         <input type="file" id="upload-input" accept="image/*" hidden aria-hidden="true">
         <button id="upload-btn" class="btn btn-ghost btn-sm" aria-label="Bild in Editor einfügen">Bild hochladen</button>
         <span id="upload-status" role="status" aria-live="polite"></span>
+      </div>
+    </div>
+
+    <!-- Einstellungen Modal -->
+    <div id="settings-modal" class="modal-overlay" hidden aria-modal="true" role="dialog" aria-label="Einstellungen">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>Einstellungen</h2>
+          <button id="settings-close" class="btn btn-ghost btn-sm" aria-label="Schließen">&times;</button>
+        </div>
+        <form id="password-form" class="modal-body" novalidate>
+          <h3>Passwort ändern</h3>
+          <label for="pw-current">Aktuelles Passwort</label>
+          <input type="password" id="pw-current" required autocomplete="current-password" aria-required="true">
+          <label for="pw-new">Neues Passwort</label>
+          <input type="password" id="pw-new" required autocomplete="new-password" aria-required="true" minlength="8">
+          <label for="pw-confirm">Neues Passwort wiederholen</label>
+          <input type="password" id="pw-confirm" required autocomplete="new-password" aria-required="true" minlength="8">
+          <button type="submit" class="btn btn-primary">Passwort ändern</button>
+          <p id="pw-status" class="pw-status" role="status" hidden></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- Versions-Panel -->
+    <div id="versions-panel" class="versions-panel" hidden aria-label="Versionsverlauf">
+      <div class="versions-header">
+        <h3>Versionen</h3>
+        <button id="versions-close" class="btn btn-ghost btn-sm" aria-label="Versionen schließen">&times;</button>
+      </div>
+      <div id="versions-list" class="versions-list"></div>
+      <div id="version-preview" class="version-preview" hidden>
+        <div class="version-preview-header">
+          <span id="version-preview-date"></span>
+          <button id="version-restore" class="btn btn-primary btn-sm">Wiederherstellen</button>
+        </div>
+        <pre id="version-preview-content" class="version-preview-content"></pre>
       </div>
     </div>
 
