@@ -14,7 +14,11 @@ Diese Website verwendet kein Tracking, keine Cookies, keine Analyse-Tools. Deine
 
 ## Hosting
 
-Diese Website wird über Netlify, Inc. (USA) bereitgestellt. Netlify speichert Server-Logs (IP-Adresse, Zeitstempel, angeforderte Seite) für maximal 30 Tage. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO.
+Diese Website wird über statichost.eu (Variable Object Assignment, Stockholm, Schweden; Server in Helsinki, Finnland) bereitgestellt. Der Hoster speichert keine Server-Logs, keine IP-Adressen und keine personenbezogenen Daten.
+
+Das CMS-Backend zur Inhaltsbearbeitung wird über Scaleway SAS (Paris, Frankreich) betrieben und ist nur für die Anmeldung und Bearbeitung von Inhalten zuständig.
+
+Alle Datenverarbeitung findet innerhalb der EU statt — es erfolgt kein Drittlandtransfer. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO.
 
 ## Werkzeuge
 

@@ -257,5 +257,5 @@ Erst machen wenn Content steht und Site live ist.
 ## Testumgebung
 
 - **`/Users/joho21/Projekte/Jochen_webseite_v2/`** — Spielwiese zum Ausprobieren (Eleventy + Git, hat schon 3 Farbpaletten)
-- Hier neue Features testen (Sveltia CMS, Theme-Switcher, etc.) bevor sie ins Template oder Live-Projekte wandern
+- Hier neue Features testen (perfectCMS, Theme-Switcher, etc.) bevor sie ins Template oder Live-Projekte wandern
 - Nicht für Produktion — nur zum Experimentieren
