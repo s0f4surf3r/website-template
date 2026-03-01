@@ -176,7 +176,7 @@ select {
 
 .btn-sm {
   padding: 0.5rem 1rem;
-  min-height: 2.25rem;          /* 36px — OK for non-primary actions */
+  min-height: 2.75rem;          /* 44px — Apple HIG touch target */
   font-size: 0.875rem;          /* 14px */
 }
 
@@ -563,7 +563,7 @@ select {
 @media (max-width: 768px) {
   .field-row {
     flex-direction: column;
-    gap: 0;
+    gap: var(--space-xs);
   }
   .field-sm {
     flex: 1;
@@ -573,5 +573,76 @@ select {
   }
   .fields {
     padding: var(--space-md);
+  }
+  .upload-bar {
+    padding: var(--space-sm) var(--space-md);
+  }
+}
+
+@media (max-width: 480px) {
+  /* --- Topbar --- */
+  .topbar {
+    padding: var(--space-xs) var(--space-sm);
+  }
+
+  /* Zurück-Button kürzen */
+  #back-btn {
+    padding: 0.5rem;
+    font-size: 0;
+  }
+  #back-btn::before {
+    content: '←';
+    font-size: 1.25rem;
+  }
+
+  /* Action-Buttons: Status über Buttons */
+  .topbar-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--space-xs);
+  }
+
+  .save-status {
+    width: 100%;
+    text-align: right;
+    font-size: 0.8125rem;
+    order: -1;
+  }
+
+  /* Buttons kompakter */
+  .topbar-actions .btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  /* --- Editor-Toolbar wrapping --- */
+  .toastui-editor-toolbar {
+    flex-wrap: wrap !important;
+    min-height: auto !important;
+    padding: 2px 8px !important;
+  }
+
+  /* --- Tabs --- */
+  .tab {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  /* --- Fields kompakter --- */
+  .fields {
+    padding: var(--space-sm);
+  }
+
+  .field-toggle {
+    font-size: 0.8125rem;
+  }
+
+  /* --- Content-Liste --- */
+  .list-container {
+    padding: var(--space-sm);
+  }
+
+  .content-item {
+    padding: 0.75rem;
   }
 }
