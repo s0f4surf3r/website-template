@@ -36,11 +36,16 @@
     const headers = { 'Content-Type': 'application/json' };
     if (token) headers.Authorization = `Bearer ${token}`;
 
-    const res = await fetch(`${API_URL}${path}`, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    let res;
+    try {
+      res = await fetch(`${API_URL}${path}`, {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
+      });
+    } catch (err) {
+      return { status: 0, data: null, networkError: true };
+    }
 
     const data = await res.json().catch(() => null);
 
@@ -50,6 +55,16 @@
     }
 
     return { status: res.status, data };
+  }
+
+  function errorMsg(res, fallback) {
+    if (!res) return fallback;
+    if (res.networkError) return 'Keine Verbindung zum Server';
+    if (res.status === 409) return 'Konflikt — Seite wurde anderweitig geändert. Bitte neu laden.';
+    if (res.status === 413) return 'Datei zu groß';
+    if (res.status >= 500) return 'Server-Fehler — bitte später erneut versuchen';
+    if (res.data && res.data.error) return res.data.error;
+    return fallback;
   }
 
   // --- Router ---
@@ -116,7 +131,7 @@
       localStorage.setItem('cms_token', token);
       navigate('#list');
     } else {
-      errorEl.textContent = (res && res.data && res.data.error) || 'Anmeldung fehlgeschlagen';
+      errorEl.textContent = errorMsg(res, 'Anmeldung fehlgeschlagen');
       errorEl.hidden = false;
     }
   });
@@ -156,7 +171,7 @@
 
     const res = await api('GET', '/api/content');
     if (!res || res.status !== 200) {
-      texteList.innerHTML = '<li class="loading">Fehler beim Laden</li>';
+      texteList.innerHTML = `<li class="loading">${errorMsg(res, 'Fehler beim Laden')}</li>`;
       seitenList.innerHTML = '';
       return;
     }
@@ -263,7 +278,8 @@
 
     const res = await api('GET', `/api/content/${encodeURIComponent(path)}`);
     if (!res || res.status !== 200) {
-      $('#save-status').textContent = 'Fehler beim Laden';
+      $('#save-status').textContent = errorMsg(res, 'Fehler beim Laden');
+      $('#save-status').style.color = 'var(--danger)';
       return;
     }
 
@@ -365,7 +381,18 @@
     }
   }
 
+  const MAX_UPLOAD_MB = 5;
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+
   function handleImageBlobUpload(blob, callback) {
+    if (blob.size > MAX_UPLOAD_MB * 1024 * 1024) {
+      callback('', `Datei zu groß (max. ${MAX_UPLOAD_MB} MB)`);
+      return;
+    }
+    if (blob.type && !ALLOWED_TYPES.includes(blob.type)) {
+      callback('', 'Nur Bilder erlaubt (JPG, PNG, GIF, WebP, SVG)');
+      return;
+    }
     const reader = new FileReader();
     reader.onload = async () => {
       const base64 = reader.result.split(',')[1];
@@ -374,7 +401,7 @@
       if (res && res.status === 200) {
         callback(res.data.path, blob.name || 'Bild');
       } else {
-        callback('', 'Upload fehlgeschlagen');
+        callback('', errorMsg(res, 'Upload fehlgeschlagen'));
       }
     };
     reader.readAsDataURL(blob);
@@ -505,7 +532,7 @@
         status.style.color = 'var(--success)';
         updatePublishButton();
       } else {
-        status.textContent = 'Fehler beim Speichern';
+        status.textContent = errorMsg(res, 'Fehler beim Speichern');
         status.style.color = 'var(--danger)';
       }
     } finally {
@@ -540,7 +567,7 @@
     if (res && res.status === 200) {
       navigate('#list');
     } else {
-      status.textContent = 'Fehler beim Löschen';
+      status.textContent = errorMsg(res, 'Fehler beim Löschen');
       status.style.color = 'var(--danger)';
     }
   });
@@ -565,6 +592,18 @@
     uploadInput.dataset.target = '';
 
     const statusEl = $('#upload-status');
+
+    if (file.size > MAX_UPLOAD_MB * 1024 * 1024) {
+      statusEl.textContent = `Datei zu groß (max. ${MAX_UPLOAD_MB} MB)`;
+      uploadInput.value = '';
+      return;
+    }
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      statusEl.textContent = 'Nur Bilder erlaubt (JPG, PNG, GIF, WebP, SVG)';
+      uploadInput.value = '';
+      return;
+    }
+
     statusEl.textContent = `Lade ${file.name} hoch...`;
 
     // Dateiname bereinigen
@@ -591,7 +630,7 @@
 
       setTimeout(() => (statusEl.textContent = ''), 3000);
     } else {
-      statusEl.textContent = 'Upload fehlgeschlagen';
+      statusEl.textContent = errorMsg(res, 'Upload fehlgeschlagen');
     }
 
     uploadInput.value = '';
