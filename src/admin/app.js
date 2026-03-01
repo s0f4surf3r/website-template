@@ -145,7 +145,7 @@
     const res = await api('POST', '/api/magic-link', { email });
 
     if (res && res.status === 200) {
-      statusEl.textContent = 'Link wurde gesendet! Prüfe dein E-Mail-Postfach.';
+      statusEl.textContent = 'Login-Link gesendet! Schau in dein E-Mail-Postfach.';
       statusEl.className = 'magic-link-status success';
     } else {
       statusEl.textContent = errorMsg(res, 'Fehler beim Senden');
