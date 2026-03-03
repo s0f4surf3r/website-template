@@ -208,8 +208,44 @@ Erst machen wenn Content steht und Site live ist.
 
 - Build testen: `npx @11ty/eleventy`
 - Mobile testen (Dev-Server auf `0.0.0.0`, im WLAN via IP erreichbar)
-- statichost.eu-Site anlegen und mit GitHub-Repo verknüpfen (public Repo)
-- perfectCMS: Scaleway Function deployen, Env-Vars pro Kunde setzen
+
+#### perfectCMS einrichten (pro Kunde)
+
+1. `src/admin/` aus `/Users/joho21/Projekte/perfectCMS/admin/` kopieren
+2. **`src/admin/index.html` öffnen → `<meta name="cms-api-url" content="...">` auf die Kunden-Function-URL setzen** ← einzige Zeile die sich ändert
+3. `.eleventy.js`: `addPassthroughCopy("src/admin")` ergänzen
+4. Scaleway Function anlegen (einmalig, s.u.)
+5. Admin-Ordner committen + pushen
+
+#### statichost.eu-Site anlegen (pro Kunde)
+
+**WICHTIG: Reihenfolge einhalten — `statichost.yml` muss im Repo sein BEVOR die Site angelegt wird.**
+
+1. `statichost.yml` ins Repo-Root (verhindert falsche SSG-Erkennung):
+   ```yaml
+   image: node:18
+   command: npm install && npx @11ty/eleventy
+   public: _site
+   ```
+2. Committen + pushen
+3. GitHub Repo muss **public** sein (`gh repo edit ... --visibility public`)
+4. builder.statichost.eu → "Add site" → Name + Repo-URL eintragen → Continue
+   - Setup Wizard SSG-Auswahl kann übersprungen werden (yml überschreibt alles)
+   - Nach "Your site is published" ist der Setup abgeschlossen
+5. GitHub Webhook einrichten (auto-build bei push):
+   ```bash
+   gh api repos/USER/REPO/hooks --method POST \
+     --field name=web --field active=true \
+     --field 'events[]=push' \
+     --field 'config[url]=https://builder.statichost.eu/SITE-NAME' \
+     --field 'config[content_type]=json'
+   ```
+6. Manuell builden (falls nötig):
+   ```bash
+   curl -X POST "https://builder.statichost.eu/SITE-NAME" \
+     -H "X-API-Key: KEY" -H "Content-Type: application/json" -d '{}'
+   ```
+
 - Domain verbinden (DNS aus Schritt 8)
 - Git push → statichost.eu baut automatisch
 
@@ -243,7 +279,15 @@ Erst machen wenn Content steht und Site live ist.
 - **Build Command**: `npx @11ty/eleventy`
 - **Public Directory**: `_site`
 - **Package Manager**: npm
-- **Kein Auto-Webhook**: Nach `git push` muss man im Dashboard "Build now" klicken, ODER Webhook manuell einrichten
+- **Webhook manuell einrichten** — statichost.eu setzt den GitHub-Webhook nicht immer automatisch. Nach Repo-Änderungen (private/public) kann er verloren gehen.
+  ```bash
+  gh api repos/USER/REPO/hooks --method POST \
+    --field name=web --field active=true \
+    --field 'events[]=push' \
+    --field 'config[url]=https://builder.statichost.eu/SITE-NAME' \
+    --field 'config[content_type]=json'
+  ```
+- **Webhook verloren?** Builds laufen nicht mehr automatisch → `gh api repos/USER/REPO/hooks` prüfen, ob leer → Webhook neu anlegen (siehe oben)
 - **Build-Dauer**: ~18 Sekunden
 - **Subdomain**: `<name>.statichost.page` (kostenlos), Custom Domain möglich
 - **API-Key**: In `/Users/joho21/Projekte/website-template/.env` als `STATICHOST_API_KEY`
@@ -260,6 +304,13 @@ Erst machen wenn Content steht und Site live ist.
 - **Typischer Verbrauch**: 50-100 Requests/Monat → 0,005% des Free Tiers
 - Wird für jede Kunden-Website eingerichtet — jeder Kunde braucht CMS, weil er selbst Texte/Preise ändern können muss
 - **Scaleway Account**: Registrierung gestartet (28. Feb 2026), Account-Typ: "Personal project"
+
+### Deployment-Regeln (WICHTIG)
+
+- **NIEMALS** `scw function function deploy` benutzen — dieser Befehl löscht alle Env-Vars! Die Function läuft danach mit 500er Fehler ("Server-Konfigurationsfehler").
+- **Env-Vars ändern**: `scw function function update <id> region=fr-par "environment-variables.KEY=value"`
+- **Code updaten**: Zip mit `node_modules` bauen, dann über Scaleway Console hochladen (Upload-Button im Function-Detail)
+- **Nach Update immer prüfen**: `curl .../api/content` muss 401 zurückgeben (nicht 500)
 
 ### Kosten-Kalkulation für typische Kunden-Website
 
