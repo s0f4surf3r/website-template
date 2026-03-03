@@ -1,0 +1,4 @@
+# statichost.eu Build-Konfiguration
+image: node:18
+command: npm install && npx @11ty/eleventy
+public: _site

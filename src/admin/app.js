@@ -7,7 +7,9 @@
   'use strict';
 
   // --- Config ---
-  const API_URL = localStorage.getItem('cms_api_url') || 'https://perfectcmstm6mdmqs-cms-api.functions.fnc.fr-par.scw.cloud';
+  const API_URL = localStorage.getItem('cms_api_url')
+    || document.querySelector('meta[name="cms-api-url"]')?.content
+    || '';
 
   // --- State ---
   let token = localStorage.getItem('cms_token') || null;
@@ -166,9 +168,16 @@
     const email = $('#login-email').value.trim();
     const password = $('#login-password').value;
     const errorEl = $('#login-error');
+    const submitBtn = $('#login-form').querySelector('button[type=submit]');
     errorEl.hidden = true;
+    const origText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Anmelden …';
 
     const res = await api('POST', '/api/login', { email, password });
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = origText;
 
     if (res && res.status === 200 && res.data.token) {
       token = res.data.token;
