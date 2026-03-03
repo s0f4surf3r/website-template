@@ -289,10 +289,12 @@ KI (Claude) baut eine schöne `.njk`-Seite im iterativen Prozess. Das Layout ist
 
 ### Wann stylyCMS, wann perfectCMS Admin?
 
-| Seitentyp | Werkzeug |
-|-----------|----------|
-| Markdown-Seiten, Blog-Posts, regelmäßiger Content | perfectCMS Admin (`/admin/`) |
-| KI-generierte Nunjucks-Seiten mit reichem Layout (Über-mich, Hero, etc.) | stylyCMS Inline-Edit |
+| Seitentyp | Format | Werkzeug |
+|-----------|--------|----------|
+| Blog-Posts, Essays, Gedichte — **neu erstellt vom Kunden** | Markdown | perfectCMS Admin (`/admin/`) |
+| Über-mich, Coaching, Leistungen, Kosten — **vom Entwickler gebaut** | Nunjucks | stylyCMS Inline-Edit |
+
+**Faustregel:** Was der Kunde selbst neu erstellt → Markdown + Admin. Was Jochen/KI gebaut hat und der Kunde nur korrigiert → Nunjucks + stylyCMS.
 
 ### Workflow beim Bauen einer Nunjucks-Seite
 
