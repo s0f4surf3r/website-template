@@ -1,6 +1,6 @@
-# Website-Template
+# J-THRUST — Website-Template
 
-Dieses Projekt ist das Template für alle Marken-Websites. Wenn Jochen "neue Seite", "neue Website" oder ähnliches sagt → diesen Workflow durchgehen.
+Master-Template für alle Kunden-Websites von **J-THRUST** (Jochen Hornung). Wenn Jochen "neue Seite", "neue Website" oder ähnliches sagt → diesen Workflow durchgehen.
 
 ## Arbeitsweise
 
@@ -31,6 +31,9 @@ Dieses Projekt ist das Template für alle Marken-Websites. Wenn Jochen "neue Sei
   - Kein GitHub-Account nötig, kein Drittanbieter-Login
   - Setup: `admin/`-Ordner ins Kunden-Repo nach `src/admin/` kopieren, Scaleway Function pro Kunde deployen
   - **Jeder Kunde bekommt CMS** — selbst "statische" Seiten brauchen Edit-Möglichkeit (Preise, Texte ändern)
+  - **Zwei CMS-Werkzeuge**, je nach Seitentyp:
+    - **perfectCMS Admin** (`/admin/`) → für Markdown-Seiten, Blog-Posts, regelmäßigen Content
+    - **stylyCMS Inline-Edit** → für KI-generierte Nunjucks-Seiten (reiches Layout, Kunde editiert direkt auf der Seite)
 
 ### Schritt 2 — Farbpalette (Bild → HTML → CSS)
 
@@ -88,10 +91,54 @@ Exakt das Format von `farbpalette.html` in diesem Repo replizieren:
 
 ### Schritt 4 — Branding & Bilder
 
+#### Design-Philosophie
+
+Farben und Logo sind keine Dekoration — sie transportieren eine Haltung. Vor dem Generieren immer fragen:
+- **Was soll die Person/Marke ausstrahlen?** (Geborgenheit? Kraft? Klarheit? Wildheit?)
+- **Was soll bewusst NICHT assoziiert werden?** (z.B. Rot-Schwarz-Weiß = Nazi-/Aggressions-Assoziation bei deutschem Kontext)
+- Bedeutungsgetriebene Farbwahl: Erst die Emotion, dann die Farbe — nicht umgekehrt
+- Philosophische/konzeptuelle Prompts bringen bessere Ergebnisse als generische ("touchstone with truth streak" > "pebble icon")
+
+#### Logo (SVG via Recraft API)
+
+**Konzeptarbeit zuerst:**
+1. Was ist die Kernmetapher der Marke? (z.B. Prüfstein = Stein der Wahrheit zeigt)
+2. Wie lässt sich das visuell abstrahieren?
+3. Muss auf hell UND dunkel funktionieren → transparenter Hintergrund + Creme/helle Details (nicht reines Weiß)
+
+**Recraft API:**
+- Endpoint: `POST https://external.api.recraft.ai/v1/images/generations`
+- Auth: `Authorization: Bearer <key>` (Key in `.env` als `RECRAFT_API_KEY`)
+- Budget: ~440 Units übrig (V3/V4 Vector = 80 Units/Bild)
+- **V3 Vector**: `style: "vector_illustration"` + `substyle` + `artistic_level` — mehr Kontrolle
+- **V4 Vector**: Besseres Prompt-Verständnis, ABER kein style/substyle/artistic_level
+- `negative_prompt` IMMER setzen: `"animals, creatures, face, eyes, text, letters"`
+- `controls.colors` mit exakten RGB-Werten der Kunden-Palette für Farbkontrolle
+- `artistic_level: 3` für Kunst mit Seele, `0` ist steril
+
+**Hintergrund entfernen (SVG):**
+- Erstes `<path>` mit `fill="rgb(255,255,255)"` oder `rgb(254,254,254)` ist der Hintergrund → per sed löschen
+
+**Was NICHT funktioniert:**
+- Ohne style/substyle/negative_prompt → zufällige Tier-Illustrationen
+- "pebble", "stone" als Prompt → wird als Profil-Silhouette interpretiert
+- Gemini für SVG → gibt nur Raster (1024x1024 PNG), kann kein Vektor
+
+#### Bilder (Raster)
+
+- **Hero-Bilder**: Gemini API (`gemini-2.5-flash-image`) — Vorsicht, kostet Geld (Preisstufe 1)
+- **Format**: Immer WebP erzeugen (PNG → WebP). `sips` kann KEIN WebP — stattdessen Python Pillow:
+  ```bash
+  python3 -c "from PIL import Image; Image.open('bild.png').save('bild.webp', 'webp', quality=85)"
+  ```
 - **Favicons** generieren (favicon.io oder eigenes Logo) — für Browser-Tabs + Homescreen-Icons
-- **OG-Tags** in `base.njk` anpassen — Open Graph Meta Tags (`og:title`, `og:description`, `og:image`, `og:url`) für WhatsApp/Social-Sharing-Vorschau
-- **Hero-Bilder** generieren via Gemini API (`gemini-2.5-flash-image`)
+- **OG-Image**: 1200x630px, WebP oder PNG, Markenfarben + Logo
+
+#### Meta & Social
+
+- **OG-Tags** in `base.njk` anpassen — `og:title`, `og:description`, `og:image`, `og:url` für WhatsApp/Social-Sharing
 - **Social-Links** in `base.njk` anpassen (Instagram, etc.)
+- **`color-scheme: light only`** im CSS setzen wenn kein Dark Mode — verhindert Safari-Extension-Inversion
 
 ### Schritt 5 — Impressum & Datenschutz
 
@@ -234,6 +281,69 @@ Erst machen wenn Content steht und Site live ist.
 
 > "Deine Website kostet dich im laufenden Betrieb nichts — nur die Domain, das sind 10-15 Euro im Jahr. Deine Seite läuft auf zwei europäischen Diensten: Einer in Schweden liefert deine Website aus, einer in Frankreich ermöglicht dir das Schreiben und Veröffentlichen. Beide sind kostenlos für die Größe deiner Seite — und werden es auch bleiben, selbst wenn du jeden Tag einen Blogpost schreibst. Erst bei zehntausenden Besuchern im Monat fallen ein paar Euro an. Keine Abo-Falle, kein Kleingedrucktes. Und das Wichtigste: Deine Daten liegen komplett in der EU — Schweden und Frankreich, keine amerikanischen Server."
 
+## stylyCMS — Inline-Editing für KI-generierte Nunjucks-Seiten
+
+### Philosophie
+
+KI (Claude) baut eine schöne `.njk`-Seite im iterativen Prozess. Das Layout ist perfekt, die Texte kommen aus dem KI-Prozess — enthalten aber ggf. Halluzinierungen die der Kunde selbst korrigieren soll. stylyCMS macht die Website selbst zum Editor: Kunde klickt auf Text, tippt, speichert. Kein Dashboard, kein separates Fenster.
+
+### Wann stylyCMS, wann perfectCMS Admin?
+
+| Seitentyp | Werkzeug |
+|-----------|----------|
+| Markdown-Seiten, Blog-Posts, regelmäßiger Content | perfectCMS Admin (`/admin/`) |
+| KI-generierte Nunjucks-Seiten mit reichem Layout (Über-mich, Hero, etc.) | stylyCMS Inline-Edit |
+
+### Workflow beim Bauen einer Nunjucks-Seite
+
+1. Claude baut die `.njk`-Seite iterativ mit Jochen
+2. **Claude fügt `data-cms-field="id"` zu ALLEN editierbaren Textblöcken hinzu** — direkt beim Bauen, nicht nachträglich
+3. `base.njk` hat das Inline-Edit-Script bereits eingebaut (prüft `cms_token` in localStorage)
+4. Seiten-Pfad in `CMS_PAGES` Env-Var der Scaleway Function eintragen
+5. Kunde bekommt Magic Link → klickt → landet auf der Seite im Edit-Mode
+
+### Technische Regeln für `data-cms-field`
+
+```html
+<!-- Jeder editierbare Textblock bekommt ein eindeutiges Attribut -->
+<p data-cms-field="poem_1">Text...</p>
+<h2 data-cms-field="titel_heute">Abschnittstitel</h2>
+<p data-cms-field="heute_3">Weiterer Text...</p>
+```
+
+- **Attribut auf alle** `<p>`, `<h1>`, `<h2>`, `<h3>` die der Kunde ändern können soll
+- **IDs eindeutig pro Seite** — Naming Convention: `bereich_nr` (z.B. `poem_1`, `heute_3`, `frueher_7`)
+- **Niemals** auf `<div>`, `<a>`, `<button>`, `<img>` — nur Textelemente
+- Der `/api/inline` Endpoint in der Scaleway Function findet den Tag per Regex und ersetzt den Inhalt im `.njk`
+
+### Magic Link für Kunden (Open Mode)
+
+Damit der Kunde sich einloggen kann ohne Passwort:
+
+```
+Scaleway Env-Vars:
+CMS_MAGIC_OPEN=true          → Magic Link geht an jede E-Mail-Adresse
+MAGIC_REDIRECT=https://site.de/ueber/   → Link führt direkt zur editierbaren Seite
+TEM_FROM_EMAIL=noreply@domain.de        → Absender (Domain muss in Scaleway TEM verifiziert sein)
+SCALEWAY_SECRET_KEY=...      → Für TEM E-Mail-Versand
+SCALEWAY_PROJECT_ID=...      → Scaleway Projekt-ID
+```
+
+Flow für den Kunden:
+1. Kunde öffnet `/admin/` → gibt E-Mail ein → klickt "Magic Link"
+2. E-Mail kommt → klickt Link → landet direkt auf der Seite (z.B. `/ueber/`)
+3. Seite erkennt `?magic=TOKEN` in der URL → loggt ein → aktiviert Edit-Button
+4. Kunde klickt auf Text → tippt → klickt Speichern
+5. ~2 Minuten später ist die Änderung live
+
+### DNS für E-Mail-Versand (Anti-Spam)
+
+Damit Magic Link Mails nicht im Spam landen:
+- **SPF**: `include:_spf.tem.scaleway.com` im TXT-Record der Absender-Domain
+- **DKIM**: `scw._domainkey.domain.de` TXT-Record mit Scaleway DKIM-Key
+- **DMARC**: `_dmarc.domain.de` TXT mit `v=DMARC1; p=none`
+- DKIM-Key über Scaleway TEM API abrufen: `GET /transactional-email/.../domains`
+
 ## Deploy-Regel
 
 - Deployen ist OK wenn kostenlos — einfach machen, aber transparent sagen was passiert
@@ -253,6 +363,7 @@ Erst machen wenn Content steht und Site live ist.
 | `src/impressum.md` | Impressum-Template mit Platzhaltern |
 | `src/datenschutz.md` | Datenschutz-Template mit Platzhaltern |
 | `farbpalette.html` | Referenz-Format für Farbpaletten-HTML |
+| `data-cms-field="id"` | Attribut auf Textelemente → macht sie per stylyCMS inline-editierbar |
 
 ## Testumgebung
 
