@@ -136,7 +136,18 @@ Farben und Logo sind keine Dekoration — sie transportieren eine Haltung. Vor d
 
 #### Meta & Social
 
-- **OG-Tags** in `base.njk` anpassen — `og:title`, `og:description`, `og:image`, `og:url` für WhatsApp/Social-Sharing
+- **OG-Tags** in `base.njk` — vollständige Pflichtliste, IMMER alle setzen:
+  ```html
+  <meta property="og:title" content="...">
+  <meta property="og:description" content="...">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="...">
+  <meta property="og:locale" content="da_DK">  <!-- oder de_DE etc. -->
+  <meta property="og:image" content="https://domain.tld/images/og-bild.jpg">
+  <meta property="og:image:width" content="1408">
+  <meta property="og:image:height" content="768">
+  ```
+  Ohne `og:image` kein Vorschaubild bei Facebook/WhatsApp/LinkedIn. Bild mind. 1200×630px, max 8MB. Bei Domain-Wechsel URL anpassen!
 - **Social-Links** in `base.njk` anpassen (Instagram, etc.)
 - **`color-scheme: light only`** im CSS setzen wenn kein Dark Mode — verhindert Safari-Extension-Inversion
 
